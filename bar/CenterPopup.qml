@@ -1,23 +1,21 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Mpris
-import Quickshell.Io 
+import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.Material
 import QtQuick.Effects
+import QtQuick.Layouts
 import "../theme" as Theme
+import "../widgets" as Widgets
 
-// Activated by Bar.qml's center island click.
-// In shell.qml:
-//   CenterPopup { id: centerPopup }
-//   Bar         { onCenterClicked: centerPopup.toggle() }
 Scope {
     id: root
     property bool open: false
 
     function toggle() { open = !open }
 
-    // Also toggle-able via IPC: qs ipc call centerpopup toggle
     IpcHandler {
         target: "centerpopup"
         function toggle() { root.open = !root.open }
@@ -28,13 +26,12 @@ Scope {
         anchors { top: true; left: true; right: true; bottom: true }
         color: "transparent"
 
-        WlrLayershell.namespace: "quickshell:centerpopup"
-        WlrLayershell.layer:    WlrLayer.Overlay
+        WlrLayershell.namespace:     "quickshell:centerpopup"
+        WlrLayershell.layer:         WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
         Keys.onEscapePressed: root.open = false
 
-        // Click outside to dismiss
         MouseArea {
             anchors.fill: parent
             onClicked: root.open = false
@@ -55,14 +52,18 @@ Scope {
             border.color: Theme.Catppuccin.border
             border.width: 1
 
-            // Grow from top-center, matching the bar island
+            // Cascade Material theming to all controls inside
+            Material.theme:      Material.Dark
+            Material.accent:     Theme.Catppuccin.accent
+            Material.foreground: Theme.Catppuccin.fg
+            Material.background: Theme.Catppuccin.bgFloat
+
             transformOrigin: Item.Top
             scale:   open ? 1.0 : 0.94
             opacity: open ? 1.0 : 0.0
             Behavior on scale   { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-            // Behavior on opacity { NumberAnimation { duration: 180 } }
+            Behavior on opacity { NumberAnimation { duration: 180 } }
 
-            // Swallow clicks so backdrop doesn't close us
             MouseArea { anchors.fill: parent }
 
             RowLayout {
@@ -77,10 +78,9 @@ Scope {
                     Layout.alignment:      Qt.AlignTop
                     implicitHeight:        calCol.implicitHeight
 
-                    // ── State ──────────────────────────────────────────
                     property var today:     new Date()
                     property int viewYear:  today.getFullYear()
-                    property int viewMonth: today.getMonth()   // 0-based
+                    property int viewMonth: today.getMonth()
 
                     readonly property var monthNames: [
                         "January","February","March","April",
@@ -117,26 +117,16 @@ Scope {
                         // ── Month header ──────────────────────────────
                         Item {
                             width:  parent.width
-                            height: 26
+                            height: 32
 
-                            // Prev month
-                            Text {
+                            ToolButton {
                                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                                 text:           "‹"
-                                color:          Theme.Catppuccin.fgMuted
-                                font.family:    Theme.Catppuccin.font
                                 font.pixelSize: 20
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape:  Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (calView.viewMonth === 0) {
-                                            calView.viewMonth = 11
-                                            calView.viewYear--
-                                        } else {
-                                            calView.viewMonth--
-                                        }
-                                    }
+                                implicitWidth:  32; implicitHeight: 32
+                                onClicked: {
+                                    if (calView.viewMonth === 0) { calView.viewMonth = 11; calView.viewYear-- }
+                                    else calView.viewMonth--
                                 }
                             }
 
@@ -149,24 +139,14 @@ Scope {
                                 font.bold:      true
                             }
 
-                            // Next month
-                            Text {
+                            ToolButton {
                                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                                 text:           "›"
-                                color:          Theme.Catppuccin.fgMuted
-                                font.family:    Theme.Catppuccin.font
                                 font.pixelSize: 20
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape:  Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (calView.viewMonth === 11) {
-                                            calView.viewMonth = 0
-                                            calView.viewYear++
-                                        } else {
-                                            calView.viewMonth++
-                                        }
-                                    }
+                                implicitWidth:  32; implicitHeight: 32
+                                onClicked: {
+                                    if (calView.viewMonth === 11) { calView.viewMonth = 0; calView.viewYear++ }
+                                    else calView.viewMonth++
                                 }
                             }
                         }
@@ -177,7 +157,7 @@ Scope {
                             Repeater {
                                 model: calView.dayNames
                                 Text {
-                                    width:              calCol.width / 7
+                                    width:               calCol.width / 7
                                     horizontalAlignment: Text.AlignHCenter
                                     text:           modelData
                                     color:          Theme.Catppuccin.fgDim
@@ -200,7 +180,7 @@ Scope {
 
                                     property var  cell:    calView.gridCells[index] ?? { day: 0, inMonth: false }
                                     property bool isToday: cell.inMonth
-                                        && cell.day      === calView.today.getDate()
+                                        && cell.day          === calView.today.getDate()
                                         && calView.viewMonth === calView.today.getMonth()
                                         && calView.viewYear  === calView.today.getFullYear()
 
@@ -208,15 +188,14 @@ Scope {
                                     height: width
                                     radius: width / 2
                                     color:  isToday ? Theme.Catppuccin.accent : "transparent"
-
                                     Behavior on color { ColorAnimation { duration: 120 } }
 
                                     Text {
                                         anchors.centerIn: parent
                                         text:           dayCell.cell.day || ""
                                         color:          dayCell.isToday      ? Theme.Catppuccin.bg
-                                                    :   dayCell.cell.inMonth ? Theme.Catppuccin.fg
-                                                    :                          Theme.Catppuccin.fgDim
+                                                      : dayCell.cell.inMonth ? Theme.Catppuccin.fg
+                                                      :                        Theme.Catppuccin.fgDim
                                         font.family:    Theme.Catppuccin.font
                                         font.pixelSize: Theme.Catppuccin.fontSm
                                         font.bold:      dayCell.isToday
@@ -229,24 +208,32 @@ Scope {
 
                 // ── Divider ───────────────────────────────────────────────
                 Rectangle {
-                    width:          1
+                    width:             1
                     Layout.fillHeight: true
-                    color:          Theme.Catppuccin.border
+                    color:             Theme.Catppuccin.border
                 }
 
                 // ── Big media player ──────────────────────────────────────
                 Item {
                     id: bigPlayer
-                    Layout.fillWidth: true
-                    Layout.alignment:      Qt.AlignTop
-                    implicitHeight:        playerCol.implicitHeight
+                    Layout.fillWidth:  true
+                    Layout.alignment:  Qt.AlignTop
+                    implicitHeight:    playerCol.implicitHeight
 
-                    // ── Player state ───────────────────────────────────
-                    property var player: null
+                    property var  player:      null
                     property real posProgress: 0
-                    property real lastPos: 0
-                    property real lastPollMs: 0
+                    property real lastPos:     0
+                    property real lastPollMs:  0
 
+                    Repeater {
+                        model: Mpris.players
+                        delegate: Item {
+                            Component.onCompleted:   { if (index === 0) bigPlayer.player = modelData }
+                            Component.onDestruction: { if (index === 0) bigPlayer.player = null }
+                        }
+                    }
+
+                    // Source-of-truth poll every 500ms
                     Timer {
                         id: posTimer
                         interval: 500
@@ -261,7 +248,7 @@ Scope {
                         }
                     }
 
-                    // High-frequency display updater
+                    // Interpolation at 100ms for smooth display
                     Timer {
                         interval: 100
                         running:  root.open && bigPlayer.player !== null
@@ -269,20 +256,12 @@ Scope {
                         onTriggered: {
                             const p = bigPlayer.player
                             if (!p || p.length <= 0 || !(p.isPlaying ?? false)) return
-                            const elapsed = (Date.now() - bigPlayer.lastPollMs) / 1000
+                            const elapsed   = (Date.now() - bigPlayer.lastPollMs) / 1000
                             const estimated = bigPlayer.lastPos + elapsed
                             bigPlayer.posProgress = Math.min(estimated / p.length, 1.0)
                         }
                     }
-                    Repeater {
-                        model: Mpris.players
-                        delegate: Item {
-                            Component.onCompleted:   { if (index === 0) bigPlayer.player = modelData }
-                            Component.onDestruction: { if (index === 0) bigPlayer.player = null }
-                        }
-                    }
 
-                    // Kick position update whenever a new track starts
                     Connections {
                         target: bigPlayer.player
                         ignoreUnknownSignals: true
@@ -290,13 +269,12 @@ Scope {
                         function onIsPlayingChanged()  { posTimer.triggered() }
                     }
 
-                    // ms → "m:ss"
                     function fmt(s) {
                         if (!s || s <= 0) return "0:00"
-                        const secs  = Math.floor(s)
-                        const h     = Math.floor(secs / 3600)
-                        const m     = Math.floor((secs % 3600) / 60)
-                        const sec   = secs % 60
+                        const secs = Math.floor(s)
+                        const h    = Math.floor(secs / 3600)
+                        const m    = Math.floor((secs % 3600) / 60)
+                        const sec  = secs % 60
                         if (h > 0)
                             return h + ":" + m.toString().padStart(2, "0") + ":" + sec.toString().padStart(2, "0")
                         return m + ":" + sec.toString().padStart(2, "0")
@@ -314,7 +292,7 @@ Scope {
                             height: width
 
                             Image {
-                                id: artImg
+                                id:       artImg
                                 anchors.fill: parent
                                 source:   bigPlayer.player?.trackArtUrl ?? ""
                                 fillMode: Image.PreserveAspectCrop
@@ -332,26 +310,34 @@ Scope {
                                     sourceItem: Rectangle {
                                         width:  artImg.width
                                         height: artImg.height
-
                                         radius: (bigPlayer.player?.isPlaying ?? false)
                                                 ? Theme.Catppuccin.radius
-                                                : Theme.Catppuccin.radius + artImg.width / 4
-
+                                                : artImg.width / 2
                                         Behavior on radius {
-                                            NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+                                            NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
                                         }
                                     }
                                 }
                             }
 
-                            // Fallback music note
-                            Text {
-                                anchors.centerIn: parent
-                                visible:        artImg.status !== Image.Ready
-                                text:           "󰎆"
-                                color:          Theme.Catppuccin.fgDim
-                                font.family:    Theme.Catppuccin.font
-                                font.pixelSize: 52
+                            // Fallback
+                            Rectangle {
+                                anchors.fill: parent
+                                visible:      artImg.status !== Image.Ready
+                                radius:       (bigPlayer.player?.isPlaying ?? false)
+                                              ? Theme.Catppuccin.radius
+                                              : width / 2
+                                color:        Theme.Catppuccin.surface0
+                                Behavior on radius {
+                                    NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
+                                }
+                                Text {
+                                    anchors.centerIn: parent
+                                    text:           "󰎆"
+                                    color:          Theme.Catppuccin.fgDim
+                                    font.family:    Theme.Catppuccin.font
+                                    font.pixelSize: 52
+                                }
                             }
                         }
 
@@ -360,7 +346,6 @@ Scope {
                             width:   parent.width
                             spacing: 3
 
-                            // Clipping wrapper so the scroll doesn't bleed out
                             Item {
                                 width:          parent.width
                                 implicitHeight: trackTitleText.implicitHeight
@@ -377,12 +362,23 @@ Scope {
 
                                     property bool shouldScroll: implicitWidth > parent.width
                                     x: 0
-                                    NumberAnimation on x {
-                                        running:  trackTitleText.shouldScroll
-                                        loops:    Animation.Infinite
-                                        from:     0
-                                        to:       -(trackTitleText.implicitWidth - trackTitleText.parent.width)
-                                        duration: trackTitleText.shouldScroll ? (trackTitleText.implicitWidth - trackTitleText.parent.width) * 30 : 1
+                                    SequentialAnimation on x {
+                                        running: trackTitleText.shouldScroll
+                                        loops:   Animation.Infinite
+                                        NumberAnimation {
+                                            from:        0
+                                            to:          -(trackTitleText.implicitWidth - trackTitleText.parent.width)
+                                            duration:    (trackTitleText.implicitWidth - trackTitleText.parent.width) * 30
+                                            easing.type: Easing.Linear
+                                        }
+                                        PauseAnimation { duration: 1200 }
+                                        NumberAnimation {
+                                            from:        -(trackTitleText.implicitWidth - trackTitleText.parent.width)
+                                            to:          0
+                                            duration:    400
+                                            easing.type: Easing.InOutCubic
+                                        }
+                                        PauseAnimation { duration: 800 }
                                     }
                                 }
                             }
@@ -398,76 +394,38 @@ Scope {
                             }
                         }
 
-                        // ── Progress bar ───────────────────────────────
+                        // ── Scrubber (Slider) ──────────────────────────
                         Column {
                             width:   parent.width
                             spacing: 4
 
-                            // Scrubber track
-                            Item {
-                                id:     scrubber
-                                width:  parent.width
-                                height: 14
+                            Widgets.WavySlider {
+                                width:    parent.width
+                                progress: bigPlayer.posProgress
+                                playing:  bigPlayer.player?.isPlaying ?? false
 
-                                Rectangle {
-                                    id:     trackBg
-                                    width:  parent.width
-                                    height: 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    radius: 2
-                                    color:  Theme.Catppuccin.surface1
-
-                                    // Filled portion
-                                    Rectangle {
-                                        width:  trackBg.width * bigPlayer.posProgress
-                                        height: parent.height
-                                        radius: parent.radius
-                                        color:  Theme.Catppuccin.accent
-                                        Behavior on width {
-                                            NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
-                                        }
-                                    }
-
-                                    // Thumb dot
-                                    Rectangle {
-                                        x:      trackBg.width * bigPlayer.posProgress - width / 2
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        width:  10; height: 10; radius: 5
-                                        color:  Theme.Catppuccin.fg
-                                        Behavior on x {
-                                            NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
-                                        }
-                                    }
-                                }
-
-                                // Click to seek
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape:  Qt.PointingHandCursor
-                                    onClicked: (mouse) => {
-                                        const p = bigPlayer.player
-                                        if (!p || p.length <= 0) return
-                                        const ratio = Math.max(0, Math.min(mouse.x / width, 1))
-                                        p.position = ratio * p.length
-                                        bigPlayer.posProgress = ratio
-                                    }
+                                onSeeked: (ratio) => {
+                                    const p = bigPlayer.player
+                                    if (!p || p.length <= 0) return
+                                    p.position            = ratio * p.length
+                                    bigPlayer.posProgress = ratio
+                                    bigPlayer.lastPos     = ratio * p.length
+                                    bigPlayer.lastPollMs  = Date.now()
                                 }
                             }
-
                             // Timestamps
                             Item {
                                 width:  parent.width
                                 height: tsLeft.implicitHeight
 
                                 Text {
-                                    id:    tsLeft
+                                    id: tsLeft
                                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                                     text:           bigPlayer.fmt(bigPlayer.lastPos + (Date.now() - bigPlayer.lastPollMs) / 1000)
                                     color:          Theme.Catppuccin.fgDim
                                     font.family:    Theme.Catppuccin.font
                                     font.pixelSize: Theme.Catppuccin.fontSm
                                 }
-
                                 Text {
                                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
                                     text:           bigPlayer.fmt(bigPlayer.player?.length ?? 0)
@@ -481,68 +439,64 @@ Scope {
                         // ── Transport controls ─────────────────────────
                         Row {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            spacing: 18
+                            spacing: 6
 
                             // Previous
-                            Text {
+                            ToolButton {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:           "󰒮"
-                                color:          Theme.Catppuccin.fgMuted
                                 font.family:    Theme.Catppuccin.font
                                 font.pixelSize: 18
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape:  Qt.PointingHandCursor
-                                    onClicked:    bigPlayer.player?.previous()
-                                }
+                                implicitWidth:  40; implicitHeight: 40
+                                onClicked: bigPlayer.player?.previous()
                             }
 
-                            // Play / Pause circle
-                            Rectangle {
+                            // Play / Pause — RoundButton animates radius like Android
+                            RoundButton {
+                                id: playBtn
                                 anchors.verticalCenter: parent.verticalCenter
-                                width:  42
-                                height: 42
-                                color:  Theme.Catppuccin.accent
-                                radius: (bigPlayer.player?.isPlaying ?? false) ? 8 : 21
+                                width:  48; height: 48
+                                radius: (bigPlayer.player?.isPlaying ?? false) ? 24 : 10
+
                                 Behavior on radius {
-                                    NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
-                                }
-                                Text {
-                                    anchors.centerIn: parent
-                                    text:           (bigPlayer.player?.isPlaying ?? false) ? "󰏤" : "󰐊"
-                                    color:          Theme.Catppuccin.bg
-                                    font.family:    Theme.Catppuccin.font
-                                    font.pixelSize: 18
+                                    NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
                                 }
 
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape:  Qt.PointingHandCursor
-                                    onClicked:    bigPlayer.player?.togglePlaying()
+                                text: (bigPlayer.player?.isPlaying ?? false) ? "󰏤" : "󰐊"
+                                font.family:    Theme.Catppuccin.font
+                                font.pixelSize: 18
+
+                                background: Rectangle {
+                                    color:  Theme.Catppuccin.accent
+                                    radius: playBtn.radius
+                                    Behavior on radius {
+                                        NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
+                                    }
+                                }
+
+                                contentItem: Text {
+                                    text:            playBtn.text
+                                    font:            playBtn.font
+                                    color:           Theme.Catppuccin.bg
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment:   Text.AlignVCenter
                                 }
 
                                 scale: 1.0
                                 Behavior on scale { NumberAnimation { duration: 80 } }
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onPressed:  parent.parent.scale = 0.92
-                                    onReleased: parent.parent.scale = 1.0
-                                    onClicked:  bigPlayer.player?.togglePlaying()
-                                }
+                                onPressed:  scale = 0.92
+                                onReleased: scale = 1.0
+                                onClicked:  bigPlayer.player?.togglePlaying()
                             }
 
                             // Next
-                            Text {
+                            ToolButton {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text:           "󰒭"
-                                color:          Theme.Catppuccin.fgMuted
                                 font.family:    Theme.Catppuccin.font
                                 font.pixelSize: 18
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape:  Qt.PointingHandCursor
-                                    onClicked:    bigPlayer.player?.next()
-                                }
+                                implicitWidth:  40; implicitHeight: 40
+                                onClicked: bigPlayer.player?.next()
                             }
                         }
 
