@@ -8,8 +8,8 @@ Item {
     id: root
     property var currentPlayer: null
 
-    visible:        currentPlayer !== null
-    implicitWidth:  visible ? mediaRow.implicitWidth + 16 : 0
+    // visible:        currentPlayer !== null
+    implicitWidth:  currentPlayer !== null ? mediaRow.implicitWidth : 0
     implicitHeight: Theme.Catppuccin.barHeight
 
     Behavior on implicitWidth { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
@@ -28,7 +28,7 @@ Item {
         // For the box around the actual thing
         anchors.centerIn: parent
         height: Theme.Catppuccin.barHeight -10
-        width: parent.width + 10
+        width: parent.width !== 0 ? parent.width + 10 : 0
         color: Theme.Catppuccin.surface1
         radius: 9
 
@@ -36,7 +36,7 @@ Item {
             id: mediaRow
             anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
             spacing: 6
-
+            clip: true
             Text {
                 text:           (root.currentPlayer?.isPlaying ?? false) ? "󰏤" : "󰐊"
                 color:          Theme.Catppuccin.accent
@@ -51,6 +51,7 @@ Item {
 
             Item {
                 Layout.fillWidth: true
+                implicitWidth: 64
                 implicitHeight:   trackText.implicitHeight
                 clip: true
 
@@ -68,14 +69,26 @@ Item {
                     font.pixelSize: Theme.Catppuccin.fontSm
                     anchors.verticalCenter: parent.verticalCenter
 
-                    property bool shouldScroll: implicitWidth > 160
+                    property bool shouldScroll: implicitWidth > parent.width && root.currentPlayer?.isPlaying
                     x: 0
-                    NumberAnimation on x {
-                        running:  trackText.shouldScroll
-                        loops:    Animation.Infinite
-                        from:     0
-                        to:       -(trackText.implicitWidth - 160)
-                        duration: trackText.implicitWidth > 160 ? (trackText.implicitWidth - 160) * 30 : 1
+                    SequentialAnimation on x {
+                        running: trackText.shouldScroll
+                        loops:   Animation.Infinite
+
+                        NumberAnimation {
+                            from:     0
+                            to:       -(trackText.implicitWidth - trackText.parent.width)
+                            duration: (trackText.implicitWidth - trackText.parent.width) * 40
+                            easing.type: Easing.linear
+                        }
+                        PauseAnimation { duration: 1200 }
+                        NumberAnimation {
+                            from:     -(trackText.implicitWidth - trackText.parent.width)
+                            to:       0
+                            duration: 1200
+                            easing.type: Easing.InOutCubic
+                        }
+                        PauseAnimation { duration: 800 }
                     }
                 }
             }

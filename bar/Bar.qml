@@ -19,11 +19,15 @@ Scope {
             
             WlrLayershell.namespace: "quickshell:bar"
 
+            CenterPopup {
+                id: centerPopup
+            }
             Rectangle {
                 anchors.fill: parent
                 color:        Theme.Catppuccin.bgFloat
                 radius:       Theme.Catppuccin.radius
-
+                border.color: Theme.Catppuccin.border
+                border.width: 1
                 // Left and right only in the layout
                 RowLayout {
                     anchors { fill: parent; margins: Theme.Catppuccin.spacing;}
@@ -34,11 +38,17 @@ Scope {
                 }
                 
                 // Clock + media absolutely centered on the bar
-                Row {
+                RowLayout {
                     anchors.centerIn: parent
                     spacing: Theme.Catppuccin.spacing + 10
-                    Clock       { anchors.verticalCenter: parent.verticalCenter }
-                    MediaWidget { anchors.verticalCenter: parent.verticalCenter }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: centerPopup.toggle()
+                    }
+                    Clock       { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }
+                    MediaWidget { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }
+
                 }
             }
         }

@@ -34,7 +34,7 @@ QtObject {
     readonly property color bg:       base
     readonly property color bgAlt:    mantle
     readonly property color bgFloat:  base //Qt.rgba(0.118, 0.118, 0.180, 0.85)
-    readonly property color border:   surface0
+    readonly property color border:   surface1
     readonly property color fg:       text
     readonly property color fgMuted:  subtext0
     readonly property color fgDim:    overlay1
