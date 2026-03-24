@@ -30,7 +30,7 @@ QtObject {
     readonly property color rosewater: "#f5e0dc"
 
     // Semantic
-    readonly property color accent:   mauve
+    readonly property color accent:   sapphire
     readonly property color bg:       base
     readonly property color bgAlt:    mantle
     readonly property color bgFloat:  base //Qt.rgba(0.118, 0.118, 0.180, 0.85)
