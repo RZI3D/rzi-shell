@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
 import Quickshell.Io
 import QtQuick
 import QtQuick.Controls
@@ -169,6 +170,7 @@ Scope {
 
                         // ── Day grid ──────────────────────────────────
                         Grid {
+
                             columns: 7
                             width:   parent.width
                             spacing: 2
@@ -202,9 +204,16 @@ Scope {
                                     }
                                 }
                             }
-                        }
+                        }                   
+                            Widgets.AudioVisualizer {
+                                width:   parent.width
+                                height:  200
+                                playing: bigPlayer.player?.isPlaying ?? false
+                                barColor: Theme.Catppuccin.accent  // optional, defaults to accent
+                            }
                     }
                 }
+
 
                 // ── Divider ───────────────────────────────────────────────
                 Rectangle {
@@ -287,10 +296,13 @@ Scope {
 
                         // ── Album art ──────────────────────────────────
                         Item {
+                        width:  parent.parent.width
+                        height: artBox.height
+                        Item {
                             id: artBox
-                            width:  parent.width
+                            width:  200
                             height: width
-
+                            anchors.horizontalCenter: parent.horizontalCenter
                             Image {
                                 id:       artImg
                                 anchors.fill: parent
@@ -339,6 +351,7 @@ Scope {
                                     font.pixelSize: 52
                                 }
                             }
+                        }
                         }
 
                         // ── Track info ─────────────────────────────────
@@ -442,61 +455,81 @@ Scope {
                             spacing: 6
 
                             // Previous
-                            ToolButton {
+                            Widgets.ChipButton {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text:           "󰒮"
-                                font.family:    Theme.Catppuccin.font
-                                font.pixelSize: 18
-                                implicitWidth:  40; implicitHeight: 40
+                                icon:           "󰶖"
+                                implicitWidth:  60; implicitHeight: 60
                                 onClicked: bigPlayer.player?.previous()
                             }
 
                             // Play / Pause — RoundButton animates radius like Android
-                            RoundButton {
+                            Widgets.ChipButton {
                                 id: playBtn
                                 anchors.verticalCenter: parent.verticalCenter
-                                width:  48; height: 48
-                                radius: (bigPlayer.player?.isPlaying ?? false) ? 24 : 10
+                                radius: (bigPlayer.player?.isPlaying ?? false) ? 16 : 64
 
                                 Behavior on radius {
                                     NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
                                 }
 
-                                text: (bigPlayer.player?.isPlaying ?? false) ? "󰏤" : "󰐊"
-                                font.family:    Theme.Catppuccin.font
-                                font.pixelSize: 18
+                                icon: (bigPlayer.player?.isPlaying ?? false) ? "󰏤" : "󰐊"
+                                bgColor:         Theme.Catppuccin.accent
+                                fgColor:         Theme.Catppuccin.bg
+                                iconSize:        28
+                                implicitWidth:   140
+                                implicitHeight:  60
+                                radius:          28
 
-                                background: Rectangle {
-                                    color:  Theme.Catppuccin.accent
-                                    radius: playBtn.radius
-                                    Behavior on radius {
-                                        NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
-                                    }
-                                }
-
-                                contentItem: Text {
-                                    text:            playBtn.text
-                                    font:            playBtn.font
-                                    color:           Theme.Catppuccin.bg
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment:   Text.AlignVCenter
-                                }
-
-                                scale: 1.0
-                                Behavior on scale { NumberAnimation { duration: 80 } }
-                                onPressed:  scale = 0.92
-                                onReleased: scale = 1.0
                                 onClicked:  bigPlayer.player?.togglePlaying()
                             }
 
                             // Next
-                            ToolButton {
+                            Widgets.ChipButton {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text:           "󰒭"
-                                font.family:    Theme.Catppuccin.font
-                                font.pixelSize: 18
-                                implicitWidth:  40; implicitHeight: 40
+                                icon:           "󰴆"
+                                implicitWidth:  60; implicitHeight: 60
                                 onClicked: bigPlayer.player?.next()
+                            }
+
+                        }
+                        // Volume
+                        PwObjectTracker {
+                            objects: [Pipewire.defaultAudioSink]
+                        }
+                        Row {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            spacing: 6
+                            
+                            Widgets.ChipButton {
+                                // Read the current state to change the label
+                                icon: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? "" : ""
+                                implicitWidth:  60; implicitHeight: 40
+                                anchors.verticalCenter: parent.verticalCenter
+                                radius: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? 32 : 16
+                                bgColor: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? Theme.Catppuccin.red : Theme.Catppuccin.surface0
+                                fgColor: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? Theme.Catppuccin.bg : Theme.Catppuccin.fg
+                                onClicked: {
+                                    if (Pipewire.defaultAudioSink) {
+                                        // Toggle the boolean value (true becomes false, false becomes true)
+                                        Pipewire.defaultAudioSink.audio.muted = !Pipewire.defaultAudioSink.audio.muted
+                                    }
+                                }
+                            }
+
+                            Widgets.Slider {
+                                Layout.fillWidth: false
+                                implicitWidth: 200
+                                anchors.verticalCenter: parent.verticalCenter
+                                
+                                // 2. Bind the slider's value to the current default sink's volume
+                                progress: Pipewire.defaultAudioSink?.audio.volume ?? 0.0
+                                
+                                // 3. Update the system volume when the user drags the slider
+                                onSeeked: (ratio) => {
+                                    if (Pipewire.defaultAudioSink) {
+                                        Pipewire.defaultAudioSink.audio.volume = ratio
+                                    }
+                                }
                             }
                         }
 

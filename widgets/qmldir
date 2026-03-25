@@ -1,2 +1,5 @@
 module widgets
 WavySlider 1.0 WavySlider.qml
+ChipButton 1.0 ChipButton.qml
+Slider 1.0 Slider.qml
+AudioVisualizer 1.0 AudioVisualizer.qml
