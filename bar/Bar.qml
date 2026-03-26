@@ -28,6 +28,8 @@ Scope {
                 radius:       Theme.Catppuccin.radius
                 border.color: Theme.Catppuccin.border
                 border.width: 1
+
+
                 // Left and right only in the layout
                 RowLayout {
                     anchors { fill: parent; margins: Theme.Catppuccin.spacing;}
