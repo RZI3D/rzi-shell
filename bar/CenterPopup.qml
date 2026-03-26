@@ -230,6 +230,42 @@ Scope {
                     implicitHeight:    playerCol.implicitHeight
 
                     property var  player:      null
+
+                    function updateBestPlayer() {
+                        const players = Mpris.players.values;
+                        
+                        if (players.length === 0) {
+                            player = null;
+                            return;
+                        }
+
+                        let bestMatch = null;
+                        let firstPaused = null;
+
+                        for (let i = 0; i < players.length; i++) {
+                            let p = players[i];
+                            if (p.playbackStatus === Mpris.Playing) {
+                                bestMatch = p;
+                                break;
+                            }
+                            if (!firstPaused && p.playbackStatus === Mpris.Paused) {
+                                firstPaused = p;
+                            }
+                        }
+
+                        const finalChoice = bestMatch || firstPaused || players[0];
+                        if (player !== finalChoice) {
+                            player = finalChoice;
+                        }
+                    }
+
+                    Timer {
+                        interval: 500
+                        running: true
+                        repeat: true
+                        onTriggered: bigPlayer.updateBestPlayer()
+                    }
+
                     property real posProgress: 0
                     property real lastPos:     0
                     property real lastPollMs:  0

@@ -8,7 +8,45 @@ import "../theme" as Theme
 
 Item {
     id: root
+
     property var currentPlayer: null
+
+    function updateBestPlayer() {
+        const players = Mpris.players.values;
+        
+        if (players.length === 0) {
+            currentPlayer = null;
+            return;
+        }
+
+        let bestMatch = null;
+        let firstPaused = null;
+
+        for (let i = 0; i < players.length; i++) {
+            let p = players[i];
+            if (p.playbackStatus === Mpris.Playing) {
+                bestMatch = p;
+                break;
+            }
+            if (!firstPaused && p.playbackStatus === Mpris.Paused) {
+                firstPaused = p;
+            }
+        }
+
+        const finalChoice = bestMatch || firstPaused || players[0];
+        if (currentPlayer !== finalChoice) {
+            currentPlayer = finalChoice;
+        }
+    }
+
+    Timer {
+        interval: 500
+        running: true
+        repeat: true
+        onTriggered: root.updateBestPlayer()
+    }
+
+    Component.onCompleted: updateBestPlayer()
 
     implicitWidth:  currentPlayer !== null ? mediaRow.implicitWidth : 0
     implicitHeight: Theme.Catppuccin.barHeight

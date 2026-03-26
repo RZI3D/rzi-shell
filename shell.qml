@@ -1,4 +1,4 @@
-// Entry point — launched via: quickshell -p rzi
+//@ pragma UseQApplication
 import Quickshell
 import "./bar"
 import "./notifications"

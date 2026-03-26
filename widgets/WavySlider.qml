@@ -13,10 +13,22 @@ Item {
     }
 
     // keep displayProgress chasing progress
-    onProgressChanged: displayProgress = progress
+    onProgressChanged: {
+        if (!isDragging) {
+            displayProgress = progress
+        }
+    }
     onAmplitudeChanged: canvas.requestPaint()
-
-
+    property bool isDragging: mouseHandler.pressed
+    Timer {
+        id: throttleTimer
+        interval: 500
+        repeat: true
+        running: root.isDragging
+        onTriggered: {
+            root.seeked(mouseHandler.calculateRatio())
+        }
+    }
     signal seeked(real ratio)      // emitted on click, ratio 0.0 – 1.0
 
     // ── Geometry ───────────────────────────────────────────────────────
@@ -106,10 +118,33 @@ Item {
 
     // Click to seek
     MouseArea {
+        id: mouseHandler
         anchors.fill: parent
-        cursorShape:  Qt.PointingHandCursor
-        onClicked: (mouse) => {
-            root.seeked(Math.max(0, Math.min(mouse.x / width, 1)))
+        cursorShape: Qt.PointingHandCursor
+        preventStealing: true
+
+        // Helper to get the 0.0 - 1.0 value
+        function calculateRatio() {
+            return Math.max(0, Math.min(mouseX / width, 1))
+        }
+
+        onPressed: (mouse) => {
+            // Immediate update for visual snappiness
+            root.displayProgress = calculateRatio()
+            // Optional: Immediate seek on first click
+            root.seeked(calculateRatio()) 
+        }
+
+        onPositionChanged: (mouse) => {
+            if (pressed) {
+                // Update ONLY the visual bar immediately so it feels smooth
+                root.displayProgress = calculateRatio()
+            }
+        }
+        
+        onReleased: (mouse) => {
+            // Final seek to ensure we land exactly where the user let go
+            root.seeked(calculateRatio())
         }
     }
 }

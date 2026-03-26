@@ -10,7 +10,7 @@ Scope {
 
         PanelWindow {
             property var modelData
-
+            id: "topBar"
             screen:        modelData
             anchors { top: true; left: true; right: true }
             implicitHeight: Theme.Catppuccin.barHeight
