@@ -1,0 +1,4 @@
+module sidebar
+SideBar 1.0 SideBar.qml
+SideNotifCard 1.0 SideNotifCard.qml
+singleton SideBarState 1.0 SideBarState.qml

@@ -2,7 +2,11 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.Material
 import "../theme" as Theme
+import "../widgets" as Widgets
+import "../sidebar" as Sidebar  // ← add this
 
 Scope {
     Variants {
@@ -16,12 +20,12 @@ Scope {
             implicitHeight: Theme.Catppuccin.barHeight
             color:         "transparent"
             margins { top: 6; left: 6; right: 6 }
-            
             WlrLayershell.namespace: "quickshell:bar"
 
             CenterPopup {
                 id: centerPopup
             }
+            Sidebar.SideBar { id: sideBar }
             Rectangle {
                 anchors.fill: parent
                 color:        Theme.Catppuccin.bgFloat
@@ -33,10 +37,19 @@ Scope {
                 // Left and right only in the layout
                 RowLayout {
                     anchors { fill: parent; margins: Theme.Catppuccin.spacing;}
-                    spacing: 0
+                    spacing: Theme.Catppuccin.spacing
                     Workspaces { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }
                     Item { Layout.fillWidth: true }
+                    Widgets.BatteryIndicator  { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }  // ← add
                     SysTray { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }
+                    ToolButton {
+                        Layout.alignment: Qt.AlignVCenter
+                        icon.name: "notification-symbolic"
+                        icon.color: "transparent"
+                        implicitWidth: 28; implicitHeight: 28
+                        Material.foreground: Theme.Catppuccin.fg
+                        onClicked: Sidebar.SideBarState.toggle()  // via IPC alternatively: Quickshell.ipc("sidebar", "toggle")
+                    }
                 }
                 
                 // Clock + media absolutely centered on the bar

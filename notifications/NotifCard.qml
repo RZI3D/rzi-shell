@@ -26,7 +26,7 @@ Rectangle {
             running:  true
             from:     card.width - 2; to: 0
             duration: notif.expireTimeout > 0 ? notif.expireTimeout : 5000
-            onFinished: notif.expire()
+            onFinished: card.visible = false
         }
     }
 

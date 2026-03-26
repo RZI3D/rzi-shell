@@ -6,7 +6,6 @@ Item {
 
     // ── Public API ─────────────────────────────────────────────────────
     property real progress:  0.0   // 0.0 – 1.0
-    property bool playing:   false
     property real displayProgress: 0
     Behavior on displayProgress {
         NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
@@ -17,7 +16,6 @@ Item {
             displayProgress = progress
         }
     }
-    onAmplitudeChanged: canvas.requestPaint()
     property bool isDragging: mouseHandler.pressed
     Timer {
         id: throttleTimer
@@ -36,10 +34,6 @@ Item {
     implicitHeight: 48
 
     // ── Internal ───────────────────────────────────────────────────────
-    property real amplitude: playing ? 1.0 : 0.0
-    Behavior on amplitude {
-        NumberAnimation { duration: 600; easing.type: Easing.InOutCubic }
-    }
 
     Canvas {
         id: canvas
@@ -102,18 +96,14 @@ Item {
     ctx.stroke()
         }
     }
-
-    // Phase animation — faster while playing, slow idle when paused
     Timer {
         interval: 32
         running:  true
         repeat:   true
         onTriggered: {
-            canvas.phase += root.playing ? 0.10 : 0.015
             canvas.requestPaint()
         }
     }
-
     // Click to seek
     MouseArea {
         id: mouseHandler

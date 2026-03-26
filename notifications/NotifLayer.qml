@@ -1,11 +1,9 @@
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Services.Notifications
 import QtQuick
 import "../theme" as Theme
 
 Scope {
-    NotificationServer { id: server; keepOnReload: true }
 
     PanelWindow {
         anchors { top: true; right: true }
@@ -23,7 +21,7 @@ Scope {
             spacing: 6
 
             Repeater {
-                model: server.trackedNotifications
+                model: notifServer.trackedNotifications
                 delegate: NotifCard {
                     required property var modelData
                     notif: modelData
