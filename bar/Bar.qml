@@ -42,13 +42,29 @@ Scope {
                     Item { Layout.fillWidth: true }
                     Widgets.BatteryIndicator  { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }  // ← add
                     SysTray { Layout.alignment: Qt.AlignVCenter; Layout.fillHeight: true }
-                    ToolButton {
+                    Rectangle {
                         Layout.alignment: Qt.AlignVCenter
-                        icon.name: "notification-symbolic"
-                        icon.color: "transparent"
-                        implicitWidth: 28; implicitHeight: 28
-                        Material.foreground: Theme.Catppuccin.fg
-                        onClicked: Sidebar.SideBarState.toggle()  // via IPC alternatively: Quickshell.ipc("sidebar", "toggle")
+                        width: 22; height: 22
+                        radius: 6
+                        color: Theme.Catppuccin.surface1
+                    Item {
+                        Layout.alignment: Qt.AlignVCenter
+                        width: 22; height: 22
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰂚"
+                            color: Theme.Catppuccin.fg
+                            font.family: Theme.Catppuccin.font
+                            font.pixelSize: Theme.Catppuccin.fontMd
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: Sidebar.SideBarState.toggle()
+                        }
+                    }
                     }
                 }
                 

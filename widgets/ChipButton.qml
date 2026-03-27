@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import "../theme" as Theme
 
 Rectangle {
@@ -12,12 +13,18 @@ Rectangle {
     property int    iconSize:  22
     property int    textSize:  Theme.Catppuccin.fontMd
 
+    property int buttonWidth:  contentRow.implicitWidth + 32
+    property int buttonHeight: 52
+    property int buttonRadius:         28
+    property bool onLeft: false
+
     signal clicked()
 
     // ── Geometry ───────────────────────────────────────────────────────
-    implicitWidth:  contentRow.implicitWidth + 32
-    implicitHeight: 52
-    radius:         28
+
+    implicitWidth:  root.buttonWidth
+    implicitHeight: root.buttonHeight
+    radius:         root.buttonRadius
 
     color: hov ? Qt.darker(bgColor, 1.08) : bgColor
     Behavior on color { ColorAnimation { duration: 100 } }
@@ -30,16 +37,24 @@ Rectangle {
     // ── Content ────────────────────────────────────────────────────────
     Row {
         id: contentRow
-        anchors.centerIn: parent
+        anchors {
+            left: root.onLeft ? parent.left : undefined
+            horizontalCenter: root.onLeft ? undefined : parent.horizontalCenter
+        
+            // Keep it vertically centered regardless
+            verticalCenter: parent.verticalCenter
+        
+            // Add a margin only when it's on the left
+            leftMargin: root.onLeft ? 20 : 0
+        }
         spacing: icon !== "" && text !== "" ? 6 : 0
-
-        Text {
+        
+        IconImage {
             visible:        root.icon !== ""
-            text:           root.icon
-            color:          root.fgColor
-            font.family:    Theme.Catppuccin.font
-            font.pixelSize: root.iconSize
+            width: root.iconSize; height: root.iconSize
+            scale: 1.0
             anchors.verticalCenter: parent.verticalCenter
+            source: "image://icon/" + root.icon
         }
 
         Text {

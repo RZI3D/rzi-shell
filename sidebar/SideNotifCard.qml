@@ -8,7 +8,7 @@ import "../theme" as Theme
 Rectangle {
     id: card
     required property Notification notif
-
+    property bool isClosing: false
     width: parent.width
     height: layout.implicitHeight + 20
     radius: Theme.Catppuccin.radius
@@ -19,6 +19,41 @@ Rectangle {
     Material.theme:      Material.Dark
     Material.foreground: Theme.Catppuccin.fg
     Material.background: Theme.Catppuccin.surface0
+
+
+    ParallelAnimation {
+        id: fadeOut
+        
+        NumberAnimation { target: card; property: "opacity"; to: 0; duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { target: card; property: "x"; to: 350; duration: 300; easing.type: Easing.OutCubic }
+        NumberAnimation { target: card; property: "Layout.topMargin"; to: 0; duration: 300; easing.type: Easing.OutCubic }
+        
+        onFinished: closeGap.start()
+    }
+
+    NumberAnimation { id: closeGap; target: card; property: "height"; to: 0; duration: 200; easing.type: Easing.OutCubic; onFinished: card.notif.dismiss() }
+
+
+    function startClosing() {
+        isClosing = true
+        fadeOut.start()
+    }
+
+    Connections {
+    target: card.notif
+    
+    function onExpire() {
+        if (!card.isClosing) {
+            card.startClosing()
+        }
+    }
+    
+    function onDismiss() {
+        if (!card.isClosing) {
+            card.startClosing()
+        }
+    }
+}
 
     ColumnLayout {
         id: layout
@@ -56,7 +91,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: card.notif.expire()
+                    onClicked: card.startClosing()
                 }
             }
         }
@@ -100,7 +135,7 @@ Rectangle {
                     Material.foreground: Theme.Catppuccin.accent
                     onClicked: {
                         modelData.invoke()
-                        card.notif.expire()
+                        card.startClosing()
                     }
                 }
             }

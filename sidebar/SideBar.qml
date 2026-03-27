@@ -8,6 +8,7 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import "../theme" as Theme
 import "../sidebar" as Sidebar
+import "../widgets" as Widgets
 
 Scope {
     id: root
@@ -22,6 +23,7 @@ Scope {
     PanelWindow {
         id: sidebarPopup
         visible: Sidebar.SideBarState.open
+        property bool closing: false
         anchors { top: true; right: true; bottom: true; left: true }
         color: "transparent"
 
@@ -33,9 +35,19 @@ Scope {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: panel.closePanel()
+            onClicked: Sidebar.SideBarState.closeRequested() //
             enabled: Sidebar.SideBarState.open
         }
+
+        Connections {
+            target: Sidebar.SideBarState
+            function onCloseRequested() {
+                sidebarPopup.closing = true
+                closeAnim.start()
+            }
+        }
+
+
 
         Rectangle {
             id: panel
@@ -71,7 +83,8 @@ Scope {
                 duration: 220
                 easing.type: Easing.OutCubic
                 onFinished: {
-                    Sidebar.SideBarState.open = !Sidebar.SideBarState.open
+                    sidebarPopup.closing = false
+                    Sidebar.SideBarState.open = false
                 }
             }
 
@@ -83,14 +96,36 @@ Scope {
 
 
             MouseArea { anchors.fill: parent; enabled: Sidebar.SideBarState.open }
+            
 
             ColumnLayout {
                 anchors { fill: parent; margins: 14 }
                 spacing: 10
 
-                // ── Header ─────────────────────────────────────────
+                // ── Notification Header ─────────────────────────────────────────
                 RowLayout {
-                    Layout.fillWidth: true
+                    //Layout.fillWidth: true
+                    Timer {
+                        id: cleanClearNotifs
+                        interval: 80
+                        repeat: true
+                        property var queue: []
+                        
+                        onTriggered: {
+                            if (queue.length > 0) {
+                                let item = queue.shift();
+                                if (item && item.startClosing) item.startClosing();
+                            } else {
+                                stop();
+                            }
+                        }
+
+                        function startClearing(items) {
+                            queue = items;
+                            start();
+                        }
+                    }
+
 
                     Text {
                         text:           "Notifications"
@@ -107,10 +142,12 @@ Scope {
                         visible: notifList.count > 0
                         Material.foreground: Theme.Catppuccin.fgDim
                         onClicked: {
-                            // expire all tracked notifications
-                            for (let i = notifServer.trackedNotifications.count - 1; i >= 0; i--) {
-                                notifServer.trackedNotifications.values[i].expire()
+                            let items = [];
+                            for (let i = 0; i < notifRepeater.count; i++) {
+                                items.push(notifRepeater.itemAt(i));
                             }
+                            cleanClearNotifs.startClearing(items);
+                            
                         }
                     }
                 }
@@ -162,6 +199,7 @@ Scope {
                         }
                     }
                 }
+                
             }
         }
     }

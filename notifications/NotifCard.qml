@@ -14,7 +14,14 @@ Rectangle {
     border.width: 1
 
     opacity: 0; x: 20
-    Component.onCompleted: { opacity = 1; x = 0 }
+    Component.onCompleted: {
+        if (notif.lastGeneration) {
+            visible = false
+        } else {
+            opacity = 1
+            x = 0
+        }
+    }
     Behavior on opacity { NumberAnimation { duration: 200 } }
     Behavior on x       { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
@@ -23,7 +30,7 @@ Rectangle {
         height: 3; radius: 2
         color:  Theme.Catppuccin.accent
         NumberAnimation on width {
-            running:  true
+            running:  !notif.lastGeneration
             from:     card.width - 2; to: 0
             duration: notif.expireTimeout > 0 ? notif.expireTimeout : 5000
             onFinished: card.visible = false

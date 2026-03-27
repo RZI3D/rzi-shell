@@ -493,7 +493,8 @@ Scope {
                             // Previous
                             Widgets.ChipButton {
                                 anchors.verticalCenter: parent.verticalCenter
-                                icon:           "󰶖"
+                                text:           "󰶖"
+                                textSize:        18
                                 implicitWidth:  60; implicitHeight: 60
                                 onClicked: bigPlayer.player?.previous()
                             }
@@ -508,10 +509,10 @@ Scope {
                                     NumberAnimation { duration: 400; easing.type: Easing.InOutCubic }
                                 }
 
-                                icon: (bigPlayer.player?.isPlaying ?? false) ? "󰏤" : "󰐊"
+                                text: (bigPlayer.player?.isPlaying ?? false) ? "󰏤" : "󰐊"
                                 bgColor:         Theme.Catppuccin.accent
                                 fgColor:         Theme.Catppuccin.bg
-                                iconSize:        28
+                                textSize:        28
                                 implicitWidth:   140
                                 implicitHeight:  60
                                 radius:          28
@@ -522,7 +523,9 @@ Scope {
                             // Next
                             Widgets.ChipButton {
                                 anchors.verticalCenter: parent.verticalCenter
-                                icon:           "󰴆"
+                                text:           "󰴆"
+                                textSize:        18
+
                                 implicitWidth:  60; implicitHeight: 60
                                 onClicked: bigPlayer.player?.next()
                             }
@@ -538,7 +541,8 @@ Scope {
                             
                             Widgets.ChipButton {
                                 // Read the current state to change the label
-                                icon: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? "" : ""
+                                text: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? "" : ""
+                                textSize:        18
                                 implicitWidth:  60; implicitHeight: 40
                                 anchors.verticalCenter: parent.verticalCenter
                                 radius: (Pipewire.defaultAudioSink?.audio.muted ?? false) ? 32 : 16

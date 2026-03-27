@@ -31,7 +31,7 @@ PanelWindow {
     }
 
     NumberAnimation { id: openAnim; target: root; property: "implicitHeight"; to: root.openHeight; duration: 250; easing.type: Easing.OutCubic }
-    NumberAnimation { id: closeAnim; target: root; property: "implicitHeight"; to: 0; duration: 200; easing.type: Easing.InCubic; onFinished: root.visible = false }
+    NumberAnimation { id: closeAnim; target: root; property: "implicitHeight"; to: 0; duration: 200; easing.type: Easing.OutCubic; onFinished: root.visible = false }
     Timer { id: hideTimer; interval: 2200; onTriggered: closeAnim.start() }
 
     Rectangle {
