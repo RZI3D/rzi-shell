@@ -1,17 +1,23 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import "../theme" as Theme
 
 Rectangle {
     id: card
     required property var notif
-
     width:  344
     height: layout.implicitHeight + 20
     radius: Theme.Catppuccin.radius
     color:  Theme.Catppuccin.bgAlt
     border.color: Theme.Catppuccin.border
     border.width: 1
+
+    NumberAnimation { id: fadeOut; target: card; property: "x"; to: 400; duration: 300; easing.type: Easing.OutCubic; onFinished: closeGap.start() }        
+    NumberAnimation { id: closeGap; target: card; property: "height"; to: 0; duration: 200; easing.type: Easing.OutCubic; onFinished: card.notif.dismiss() }
+
+    NumberAnimation { id: ignoreOut; target: card; property: "x"; to: 400; duration: 300; easing.type: Easing.OutCubic; onFinished: ignoreCloseGap.start() }        
+    NumberAnimation { id: ignoreCloseGap; target: card; property: "height"; to: 0; duration: 200; easing.type: Easing.OutCubic; onFinished: card.visible = false }
 
     opacity: 0; x: 20
     Component.onCompleted: {
@@ -33,7 +39,7 @@ Rectangle {
             running:  !notif.lastGeneration
             from:     card.width - 2; to: 0
             duration: notif.expireTimeout > 0 ? notif.expireTimeout : 5000
-            onFinished: card.visible = false
+            onFinished: ignoreOut.start()
         }
     }
 
@@ -79,10 +85,11 @@ Rectangle {
             }
         }
 
-        Text {
-            text: "✕"; color: Theme.Catppuccin.fgDim; font.pixelSize: 13
+        ToolButton {
+            text: "✕"; //color: Theme.Catppuccin.fgDim; font.pixelSize: 13
             Layout.alignment: Qt.AlignTop
-            MouseArea { anchors.fill: parent; onClicked: notif.expire() }
+            onClicked: fadeOut.start()
+            //MouseArea { anchors.fill: parent; onClicked: notif.expire() }
         }
     }
 }

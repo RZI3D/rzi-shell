@@ -2,10 +2,12 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 import "../theme" as Theme
+import "../sidebar" as Sidebar
 
 Scope {
 
     PanelWindow {
+        visible: !Sidebar.SideBarState.dndEnabled
         anchors { top: true; right: true }
         margins { top: 8; right: 8 }
         implicitWidth:  360

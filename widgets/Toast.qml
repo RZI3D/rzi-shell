@@ -5,17 +5,18 @@ import "../theme" as Theme
 PanelWindow {
     id: root
     property int openHeight: 75
+    property int closeHeight: 0
     property int toastWidth: 310
     
     // This allows children to inject their Rows/Columns directly
     default property alias content: container.data
-
+    focusable: false
     visible: false
-    implicitHeight: 0
+    implicitHeight: root.closeHeight
     anchors { top: true; left: true; right: true }
     color: "transparent"
     exclusiveZone: 0
-    WlrLayershell.namespace: "quickshell:volumeToast"
+    WlrLayershell.namespace: "quickshell:toast"
     WlrLayershell.layer:     WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
@@ -31,7 +32,7 @@ PanelWindow {
     }
 
     NumberAnimation { id: openAnim; target: root; property: "implicitHeight"; to: root.openHeight; duration: 250; easing.type: Easing.OutCubic }
-    NumberAnimation { id: closeAnim; target: root; property: "implicitHeight"; to: 0; duration: 200; easing.type: Easing.OutCubic; onFinished: root.visible = false }
+    NumberAnimation { id: closeAnim; target: root; property: "implicitHeight"; to: root.closeHeight; duration: 200; easing.type: Easing.OutCubic; onFinished: root.visible = false }
     Timer { id: hideTimer; interval: 2200; onTriggered: closeAnim.start() }
 
     Rectangle {

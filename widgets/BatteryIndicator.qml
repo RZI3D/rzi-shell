@@ -6,6 +6,7 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import Quickshell.Io
 import "../theme" as Theme
+import "../widgets" as Widgets
 
 Item {
     id: root
@@ -30,12 +31,40 @@ Item {
         });
     }
 
+    property real animatedProgress: 0.0
+
+    NumberAnimation {
+        id: fillAnimation
+        target: root
+        property: "animatedProgress"
+        from: 0.0
+        to: battery.percentage
+        duration: 800
+        easing.type: Easing.OutCubic
+        onFinished:  batToast.show();
+    }
+
+    function showToast() {
+        batToast.show();
+        fillAnimation.restart();    
+    }
+
+    Widgets.ToastSlider {
+        id: batToast
+        icon: "image://icon/" + battery.iconName
+        // Use the animated property here instead of battery.percentage
+        progress: animatedProgress
+        text: Math.round(animatedProgress * 100) + "%"
+        disableAnimation: true
+        openHeight: 1800
+        closeHeight: 2200
+    }
+
     // --- Logic Triggers ---
     onIsCriticalChanged: {
-        if (isCritical) {
-            notify("Battery Critical", 
-                   Math.round(battery.percentage * 100) + "% remaining!", 
-                   "critical", "battery-caution");
+        if (isCritical && battery.state !== UPowerDeviceState.Charging) {
+            notify("Battery CRITICAL!", "Battery is 5%. Plug in NOW!", "high", "battery-low");
+            showToast()
         }
     }
 
@@ -43,7 +72,12 @@ Item {
         target: root.battery
         function onStateChanged() {
             if (root.battery.state === UPowerDeviceState.Charging) {
+                console.log(batToast.progress)
                 notify("Charging", "Power source connected.", "low", "battery-charging");
+                showToast()
+            } else if (root.battery.state === UPowerDeviceState.Discharging) {
+                notify("Discharging", "Power source disconnected.", "low", "battery");
+                showToast()                
             }
         }
     }
@@ -97,7 +131,6 @@ Item {
                     source: "image://icon/" + battery.iconName
                     height: 14; width: height
                 }
-                
                 MultiEffect {
                     source: batteryIcon
                     anchors.fill: batteryIcon

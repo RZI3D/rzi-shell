@@ -1,9 +1,11 @@
 import QtQuick
 import Quickshell
+import Quickshell.Widgets
+import "../theme" as Theme
+import "." as LocalWidgets
 
-Toast {
-    property alias icon: txtIcon.name
-    property alias iconColor: txtIcon.color
+LocalWidgets.Toast {
+    property alias icon: txtIcon.source
     property alias title: titleLabel.text
     property alias subtitle: subLabel.text
 
@@ -11,10 +13,9 @@ Toast {
         anchors.centerIn: parent
         spacing: 16
 
-        Icon {
+        IconImage {
             id: txtIcon
             width: 32; height: 32
-            color: iconColor // Default to passed color
         }
 
         Column {

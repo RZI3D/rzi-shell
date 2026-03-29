@@ -6,6 +6,7 @@ Item {
     property real progress: 0.5 
     property color color: Theme.Catppuccin.accent
     property color color2: Theme.Catppuccin.surface0
+    property bool disableAnimation: false
     property real gap: 4
 
     implicitWidth: 200
@@ -30,7 +31,7 @@ Item {
             color: root.color
             radius: height / 2
 
-            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+            Behavior on width { enabled: !root.disableAnimation; NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
         }
 
         // ── Right Side (Unfilled) ──────────────────────────────────────
@@ -45,7 +46,7 @@ Item {
             color: root.color2
             radius: height / 2
 
-            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+            Behavior on width { enabled: !root.disableAnimation; NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
         }
     }
 }

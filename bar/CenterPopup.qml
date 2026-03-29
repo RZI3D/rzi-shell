@@ -208,7 +208,7 @@ Scope {
                             Widgets.AudioVisualizer {
                                 width:   parent.width
                                 height:  200
-                                playing: bigPlayer.player?.isPlaying ?? false
+                                playing: true //bigPlayer.player?.isPlaying ?? false // just play always
                                 barColor: Theme.Catppuccin.accent  // optional, defaults to accent
                             }
                     }

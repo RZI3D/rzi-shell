@@ -2,6 +2,9 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import Quickshell.Services.Pipewire
+import Quickshell.Bluetooth
+import Quickshell.Networking
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
@@ -101,6 +104,17 @@ Scope {
             ColumnLayout {
                 anchors { fill: parent; margins: 14 }
                 spacing: 10
+
+                // ── System Controls ─────────────────────────────────────────────
+                RowLayout { 
+                    Widgets.ChipButton {
+                        text: "DND"
+                        icon: Sidebar.SideBarState.dndEnabled ? "notifications-disabled-symbolic" : "notifications-symbolic"
+                        onClicked: {
+                            Sidebar.SideBarState.dndEnabled = !Sidebar.SideBarState.dndEnabled
+                        }
+                    }
+                }
 
                 // ── Notification Header ─────────────────────────────────────────
                 RowLayout {
