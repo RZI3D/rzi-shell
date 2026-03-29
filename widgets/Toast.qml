@@ -2,23 +2,29 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "../theme" as Theme
-PanelWindow {
+
+PopupWindow {
     id: root
+
     property int openHeight: 75
     property int closeHeight: 0
     property int toastWidth: 310
-    
-    // This allows children to inject their Rows/Columns directly
+
     default property alias content: container.data
-    focusable: false
+
+    parentWindow: topBar
+
     visible: false
-    implicitHeight: root.closeHeight
-    anchors { top: true; left: true; right: true }
+    implicitWidth: toastWidth
+    implicitHeight: closeHeight
     color: "transparent"
-    exclusiveZone: 0
-    WlrLayershell.namespace: "quickshell:toast"
-    WlrLayershell.layer:     WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+    anchor.window: topBar
+    anchor.edges: Edges.Top | Edges.Left
+    anchor.gravity: Edges.Bottom | Edges.Right
+    anchor.rect.x: Math.round((topBar.width - toastWidth) / 2)
+    anchor.rect.y: 0
+    anchor.adjustment: PopupAdjustment.None
 
     function show() {
         openAnim.start()
@@ -31,16 +37,15 @@ PanelWindow {
         else show()
     }
 
-    NumberAnimation { id: openAnim; target: root; property: "implicitHeight"; to: root.openHeight; duration: 250; easing.type: Easing.OutCubic }
+    NumberAnimation { id: openAnim;  target: root; property: "implicitHeight"; to: root.openHeight;  duration: 250; easing.type: Easing.OutCubic }
     NumberAnimation { id: closeAnim; target: root; property: "implicitHeight"; to: root.closeHeight; duration: 200; easing.type: Easing.OutCubic; onFinished: root.visible = false }
     Timer { id: hideTimer; interval: 2200; onTriggered: closeAnim.start() }
 
     Rectangle {
-        id: panel
-        anchors.centerIn: parent
-        anchors.topMargin: 12
-        height: 52
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
         width: root.toastWidth
+        height: 52
         radius: Theme.Catppuccin.radius
         color:  Theme.Catppuccin.bgFloat
         border.color: Theme.Catppuccin.border
